@@ -1,0 +1,181 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+using namespace std;
+
+class User {
+    string userId, firstName, lastName, address, email;
+public:
+    User() {}
+    User(string id, string fname, string lname, string addr, string mail)
+        : userId(id), firstName(fname), lastName(lname), address(addr), email(mail) {}
+
+    static void writeToFile(const vector<User>& users) {
+        ofstream file("users.txt");
+        for (int i = 0; i < users.size(); i++) {
+            file << users[i].userId << "," << users[i].firstName << "," << users[i].lastName << "," 
+                 << users[i].address << "," << users[i].email << endl;
+        }
+        file.close();
+    }
+
+    static vector<User> readFromFile() {
+        vector<User> users;
+        ifstream file("users.txt");
+        string line;
+        while (getline(file, line)) {
+            int p1 = line.find(',');
+            int p2 = line.find(',', p1 + 1);
+            int p3 = line.find(',', p2 + 1);
+            int p4 = line.find(',', p3 + 1);
+            if (p1 != -1 && p2 != -1 && p3 != -1 && p4 != -1) {
+                string id = line.substr(0, p1);
+                string fname = line.substr(p1 + 1, p2 - p1 - 1);
+                string lname = line.substr(p2 + 1, p3 - p2 - 1);
+                string addr = line.substr(p3 + 1, p4 - p3 - 1);
+                string mail = line.substr(p4 + 1);
+                users.push_back(User(id, fname, lname, addr, mail));
+            }
+        }
+        file.close();
+        return users;
+    }
+
+    string getUserId() const { return userId; }
+    string getFirstName() const { return firstName; }
+};
+
+class Product {
+    string productId, productName, description;
+    int price;
+public:
+    Product() {}
+    Product(string id, string pname, string desc, int pr)
+        : productId(id), productName(pname), description(desc), price(pr) {}
+
+    static void writeToFile(const vector<Product>& products) {
+        ofstream file("products.txt");
+        for (int i = 0; i < products.size(); i++) {
+            file << products[i].productId << "," << products[i].productName << "," 
+                 << products[i].description << "," << products[i].price << endl;
+        }
+        file.close();
+    }
+
+    static vector<Product> readFromFile() {
+        vector<Product> products;
+        ifstream file("products.txt");
+        string line;
+        while (getline(file, line)) {
+            int p1 = line.find(',');
+            int p2 = line.find(',', p1 + 1);
+            int p3 = line.find(',', p2 + 1);
+            if (p1 != -1 && p2 != -1 && p3 != -1) {
+                string id = line.substr(0, p1);
+                string pname = line.substr(p1 + 1, p2 - p1 - 1);
+                string desc = line.substr(p2 + 1, p3 - p2 - 1);
+                int pr = stoi(line.substr(p3 + 1));
+                products.push_back(Product(id, pname, desc, pr));
+            }
+        }
+        file.close();
+        return products;
+    }
+
+    string getProductName() const { return productName; }
+    string getProductId() const { return productId; }
+};
+
+class Order {
+    string orderId, userId, productOrdered;
+    int totalPaid;
+public:
+    Order() {}
+    Order(string oid, string uid, string pid, int paid)
+        : orderId(oid), userId(uid), productOrdered(pid), totalPaid(paid) {}
+
+    static void writeToFile(const vector<Order>& orders) {
+        ofstream file("orders.txt");
+        for (int i = 0; i < orders.size(); i++) {
+            file << orders[i].orderId << "," << orders[i].userId << "," 
+                 << orders[i].productOrdered << "," << orders[i].totalPaid << endl;
+        }
+        file.close();
+    }
+
+    static vector<Order> readFromFile() {
+        vector<Order> orders;
+        ifstream file("orders.txt");
+        string line;
+        while (getline(file, line)) {
+            int p1 = line.find(',');
+            int p2 = line.find(',', p1 + 1);
+            int p3 = line.find(',', p2 + 1);
+            if (p1 != -1 && p2 != -1 && p3 != -1) {
+                string oid = line.substr(0, p1);
+                string uid = line.substr(p1 + 1, p2 - p1 - 1);
+                string pid = line.substr(p2 + 1, p3 - p2 - 1);
+                int paid = stoi(line.substr(p3 + 1));
+                orders.push_back(Order(oid, uid, pid, paid));
+            }
+        }
+        file.close();
+        return orders;
+    }
+
+    string getUserId() const { return userId; }
+    string getProductOrdered() const { return productOrdered; }
+};
+
+int main() {
+    vector<User> users = {
+        User("U1", "Linus", "", "Finland", "linus@linux.org"),
+        User("U2", "Ada", "Lovelace", "UK", "ada@math.com"),
+        User("U3", "Alan", "Turing", "UK", "alan@computing.com")
+    };
+    vector<Product> products = {
+        Product("P1", "Laptop", "High performance laptop", 1200),
+        Product("P2", "Smartphone", "Latest model smartphone", 800),
+        Product("P3", "Server", "Powerful server machine", 5000)
+    };
+    vector<Order> orders = {
+        Order("O1", "U1", "P1", 1200),
+        Order("O2", "U1", "P3", 5000),
+        Order("O3", "U2", "P2", 800)
+    };
+
+    User::writeToFile(users);
+    Product::writeToFile(products);
+    Order::writeToFile(orders);
+
+    vector<User> readUsers = User::readFromFile();
+    vector<Product> readProducts = Product::readFromFile();
+    vector<Order> readOrders = Order::readFromFile();
+
+    string linusId;
+    for (int i = 0; i < readUsers.size(); i++) {
+        if (readUsers[i].getFirstName() == "Linus") {
+            linusId = readUsers[i].getUserId();
+            break;
+        }
+    }
+
+    vector<string> linusProducts;
+    for (int i = 0; i < readOrders.size(); i++) {
+        if (readOrders[i].getUserId() == linusId) {
+            linusProducts.push_back(readOrders[i].getProductOrdered());
+        }
+    }
+
+    cout << "Products ordered by Linus:" << endl;
+    for (int i = 0; i < linusProducts.size(); i++) {
+        for (int j = 0; j < readProducts.size(); j++) {
+            if (readProducts[j].getProductId() == linusProducts[i]) {
+                cout << readProducts[j].getProductName() << endl;
+            }
+        }
+    }
+
+    return 0;
+}
