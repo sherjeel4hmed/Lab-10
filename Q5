@@ -1,0 +1,70 @@
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <string>
+using namespace std;
+
+class ToDoList {
+    string filename;
+
+public:
+    ToDoList(string fname) : filename(fname) {}
+
+    void addTask(string task) {
+        ofstream file(filename, ios::app);
+        file << "[ ] " << task << endl;
+        file.close();
+    }
+
+    void viewTasks() {
+        ifstream file(filename);
+        string line;
+        while (getline(file, line)) {
+            cout << line << endl;
+        }
+        file.close();
+    }
+
+    void markTaskDone(int taskNumber) {
+        ifstream file(filename);
+        vector<string> tasks;
+        string line;
+        while (getline(file, line)) {
+            tasks.push_back(line);
+        }
+        file.close();
+        if (taskNumber > 0 && taskNumber <= tasks.size()) {
+            if (tasks[taskNumber - 1].substr(0, 3) == "[ ]")
+                tasks[taskNumber - 1][1] = 'X';
+        }
+        ofstream outFile(filename);
+        for (int i = 0; i < tasks.size(); i++) {
+            outFile << tasks[i] << endl;
+        }
+        outFile.close();
+    }
+};
+
+int main() {
+    ToDoList todo("tasks.txt");
+    int choice;
+    do {
+        cout << "1. Add Task\n2. View Tasks\n3. Mark Task Done\n0. Exit\nEnter choice: ";
+        cin >> choice;
+        cin.ignore();
+        if (choice == 1) {
+            string task;
+            cout << "Enter task: ";
+            getline(cin, task);
+            todo.addTask(task);
+        } else if (choice == 2) {
+            todo.viewTasks();
+        } else if (choice == 3) {
+            int num;
+            cout << "Enter task number to mark done: ";
+            cin >> num;
+            todo.markTaskDone(num);
+        }
+    } while (choice != 0);
+    return 0;
+}
