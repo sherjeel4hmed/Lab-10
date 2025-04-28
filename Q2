@@ -1,0 +1,197 @@
+#include <iostream>
+#include <string>
+#include <fstream>
+#include <vector>
+using namespace std;
+
+struct Employee
+{
+    int id;
+    string name;
+    string designation;
+    int yearsOfService;
+};
+
+vector<Employee> readData(const string &filename)
+{
+    vector<Employee> employeeList;
+    ifstream file(filename);
+    if (file.is_open())
+    {
+        string line;
+        while (getline(file, line))
+        {
+            int comma1 = -1, comma2 = -1, comma3 = -1;
+            for (int i = 0; i < line.length(); i++)
+            {
+                if (line[i] == ',')
+                {
+                    if (comma1 == -1)
+                        comma1 = i;
+                    else if (comma2 == -1)
+                        comma2 = i;
+                    else if (comma3 == -1)
+                        comma3 = i;
+                }
+            }
+
+            if (comma1 != -1 && comma2 != -1 && comma3 != -1)
+            {
+                string idString = line.substr(0, comma1);
+                string name = line.substr(comma1 + 1, comma2 - comma1 - 1);
+                string designation = line.substr(comma2 + 1, comma3 - comma2 - 1);
+                string yearsString = line.substr(comma3 + 1);
+
+                try
+                {
+                    int id = stoi(idString);
+                    int years = stoi(yearsString);
+                    Employee emp = {id, name, designation, years};
+                    employeeList.push_back(emp);
+                }
+                catch (const invalid_argument &e)
+                {
+                    cerr << "Error: Invalid data format. Skipping line: " << line << endl;
+                }
+            }
+            else
+            {
+                cerr << "Error: Invalid data format. Skipping line: " << line << endl;
+            }
+        }
+        file.close();
+    }
+    else
+    {
+        cerr << "Error: Cannot open file: " << filename << endl;
+    }
+    return employeeList;
+}
+
+void writeData(const string &filename, const vector<Employee> &employeeList)
+{
+    ofstream file(filename);
+    if (file.is_open())
+    {
+        for (int i = 0; i < employeeList.size(); i++)
+        {
+            file << employeeList[i].id << "," << employeeList[i].name << ","
+                 << employeeList[i].designation << "," << employeeList[i].yearsOfService << endl;
+        }
+        file.close();
+    }
+    else
+    {
+        cerr << "Error: Cannot open file: " << filename << endl;
+    }
+}
+
+vector<Employee> findMatchingEmployees(const vector<Employee> &employeeList)
+{
+    vector<Employee> matchingList;
+    for (int i = 0; i < employeeList.size(); i++)
+    {
+        if (employeeList[i].designation == "Manager" && employeeList[i].yearsOfService >= 2)
+        {
+            matchingList.push_back(employeeList[i]);
+        }
+    }
+    return matchingList;
+}
+
+void deleteExceptMatching(const string &filename, const vector<Employee> &matchingList)
+{
+    writeData(filename, matchingList);
+}
+
+void writeIncrementedData(const string &filename, const vector<Employee> &employeeList)
+{
+    vector<Employee> incrementedList;
+    for (int i = 0; i < employeeList.size(); i++)
+    {
+        Employee emp = {
+            employeeList[i].id + 1,
+            employeeList[i].name,
+            employeeList[i].designation,
+            employeeList[i].yearsOfService + 1};
+        incrementedList.push_back(emp);
+    }
+    writeData(filename, incrementedList);
+}
+
+int main()
+{
+    string filename = "employee_data.txt";
+    vector<Employee> employeeList = {
+        {1, "Virat Kohli", "Software Engineer", 3},
+        {2, "Zidane", "Manager", 5},
+        {3, "Bill Gates", "Software Engineer", 1},
+        {4, "Arteta", "Manager", 2},
+        {5, "Cristiano Ronaldo", "Team Lead", 4}};
+
+    writeData(filename, employeeList);
+
+    vector<Employee> loadedList = readData(filename);
+
+    cout << "\nQuery a) Employees with designation 'Manager' and years of service >= 2:\n";
+    vector<Employee> matchingList = findMatchingEmployees(loadedList);
+
+    if (matchingList.empty())
+    {
+        cout << "No matching employees found.\n";
+    }
+    else
+    {
+        for (int i = 0; i < matchingList.size(); i++)
+        {
+            cout << "ID: " << matchingList[i].id
+                 << ", Name: " << matchingList[i].name
+                 << ", Designation: " << matchingList[i].designation
+                 << ", Years of Service: " << matchingList[i].yearsOfService << endl;
+        }
+    }
+
+    deleteExceptMatching(filename, matchingList);
+
+    cout << "\nQuery b) Deleted all data except matching employees.\n";
+    vector<Employee> afterDeleteList = readData(filename);
+
+    cout << "\nData after deletion:\n";
+    if (afterDeleteList.empty())
+    {
+        cout << "No Data\n";
+    }
+    else
+    {
+        for (int i = 0; i < afterDeleteList.size(); i++)
+        {
+            cout << "ID: " << afterDeleteList[i].id
+                 << ", Name: " << afterDeleteList[i].name
+                 << ", Designation: " << afterDeleteList[i].designation
+                 << ", Years of Service: " << afterDeleteList[i].yearsOfService << endl;
+        }
+    }
+
+    writeIncrementedData(filename, matchingList);
+
+    cout << "\nQuery c) Wrote incremented data to the file.\n";
+    vector<Employee> incrementedList = readData(filename);
+
+    cout << "\nData after incrementing IDs and years:\n";
+    if (incrementedList.empty())
+    {
+        cout << "No Data\n";
+    }
+    else
+    {
+        for (int i = 0; i < incrementedList.size(); i++)
+        {
+            cout << "ID: " << incrementedList[i].id
+                 << ", Name: " << incrementedList[i].name
+                 << ", Designation: " << incrementedList[i].designation
+                 << ", Years of Service: " << incrementedList[i].yearsOfService << endl;
+        }
+    }
+
+    return 0;
+}
