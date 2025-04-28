@@ -1,0 +1,51 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+using namespace std;
+
+class Logger {
+    string baseFilename;
+    int maxFileSize;
+    int logCount;
+
+    int getFileSize(const string& filename) {
+        ifstream file(filename, ios::binary | ios::ate);
+        if (!file) return 0;
+        return file.tellg();
+    }
+
+    void rotateLogs() {
+        ifstream src(baseFilename, ios::binary);
+        if (!src) return;
+        string newFileName = "log" + to_string(logCount++) + ".txt";
+        ofstream dest(newFileName, ios::binary);
+        dest << src.rdbuf();
+        src.close();
+        dest.close();
+
+        ofstream clearFile(baseFilename, ios::trunc);
+        clearFile.close();
+    }
+
+public:
+    Logger(string baseName, int maxSize)
+        : baseFilename(baseName), maxFileSize(maxSize), logCount(1) {}
+
+    void log(string message) {
+        ofstream file(baseFilename, ios::app);
+        file << message << endl;
+        file.close();
+
+        if (getFileSize(baseFilename) > maxFileSize) {
+            rotateLogs();
+        }
+    }
+};
+
+int main() {
+    Logger logger("log.txt", 1024 * 1024);
+    for (int i = 0; i < 10000; i++) {
+        logger.log("Log message number " + to_string(i));
+    }
+    return 0;
+}
